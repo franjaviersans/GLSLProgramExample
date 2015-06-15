@@ -2,8 +2,11 @@
 #include "GLSLProgram.h"
 #include "FBOCube.h"
 #include <iostream>
+#include <stdexcept>
+
 
 using std::cout;
+using std::cerr;
 using std::endl;
 
 
@@ -21,7 +24,7 @@ namespace glfwFunc
 
 	bool pintar = false;
 
-	CGLSLProgram * m_program;
+	GLSLProgram * m_program;
 	glm::mat4x4 mProjMatrix, mModelViewMatrix, mMVP;
 
 	//Variables to do rotation
@@ -147,14 +150,14 @@ namespace glfwFunc
 							RotationMat; 
 
 		//Draw a Cube
-		m_program->enable();
-			glUniformMatrix4fv(m_program->getLocation("mProjection"), 1, GL_FALSE, glm::value_ptr(mProjMatrix));
-			glUniformMatrix4fv(m_program->getLocation("mModelView"), 1, GL_FALSE, glm::value_ptr(mModelViewMatrix));
-			//glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-			//glPointSize(10);
-			FBOCube::Instance()->Draw();
-			//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		m_program->disable();		
+		m_program->use();
+		m_program->setUniform("mProjection", mProjMatrix);
+		m_program->setUniform("mModelView", mModelViewMatrix);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+		//glPointSize(10);
+		FBOCube::Instance()->Draw();
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	
 
 
 		mMVP = mProjMatrix * mModelViewMatrix;
@@ -195,20 +198,24 @@ namespace glfwFunc
 
 
 		//load the shaders
-		m_program = new CGLSLProgram();
-		m_program->loadShader(std::string("./shaders/basic.vert"), CGLSLProgram::VERTEX);
-		m_program->loadShader(std::string("./shaders/basic.tcs"), CGLSLProgram::TESSELLATION_CONT);
-		m_program->loadShader(std::string("./shaders/basic.tes"), CGLSLProgram::TESSELLATION_EVAL);
-		m_program->loadShader(std::string("./shaders/basic.geom"), CGLSLProgram::GEOMETRY);
-		m_program->loadShader(std::string("./shaders/basic.frag"), CGLSLProgram::FRAGMENT);
+		m_program = new GLSLProgram();
 
-		m_program->create_link();
-		m_program->enable();
-			m_program->addAttribute("vVertex");
-			m_program->addAttribute("vColor");
-			m_program->addUniform("mProjection");
-			m_program->addUniform("mModelView");
-		m_program->disable();
+		try {
+			m_program->compileShader("./shaders/basic.vert", GLSLShader::VERTEX);
+			m_program->compileShader("./shaders/basic.tcs", GLSLShader::TESS_CONTROL);
+			m_program->compileShader("./shaders/basic.tes", GLSLShader::TESS_EVALUATION);
+			m_program->compileShader("./shaders/basic.geom", GLSLShader::GEOMETRY);
+			m_program->compileShader("./shaders/basic.frag", GLSLShader::FRAGMENT);
+
+			m_program->link();
+			m_program->use();
+				m_program->bindAttribLocation(WORLD_COORD_LOCATION, "vVertex");
+				m_program->bindAttribLocation(COLOR_COORD_LOCATION, "vColor");
+		} catch(GLSLProgramException & e) {
+ 			cerr << e.what() << endl;
+ 			exit( EXIT_FAILURE );
+		}
+		
 
 		
 		//Needed for tessellation
