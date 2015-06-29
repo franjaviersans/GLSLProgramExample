@@ -53,14 +53,14 @@ void FBOCube::Init(){
 
 
 	GLfloat Vertex[] = {//World					//Color
-						-0.5f,-0.5f,0.5f,		0.0f,0.0f,1.0f,	//v0
-						0.5f,-0.5f,0.5f,			1.0f,0.0f,1.0f,	//v1
-						0.5f,0.5f,0.5f,			1.0f,1.0f,1.0f,	//v2
-						-0.5f,0.5f,0.5f,			0.0f,1.0f,1.0f,	//v3
-						-0.5f,-0.5f,-0.5f,		0.0f,0.0f,0.0f,	//v4
-						0.5f,-0.5f,-0.5f,		1.0f,0.0f,0.0f,	//v5
-						0.5f,0.5f,-0.5f,			1.0f,1.0f,0.0f,	//v6
-						-0.5f,0.5f,-0.5f,		0.0f,1.0f,0.0f,	//v7
+						-0.5f,-0.5f,0.5f,		0.0f,0.0f,1.0f,		0.0f,0.0f, //v0
+						0.5f,-0.5f,0.5f,			1.0f,0.0f,1.0f,		1.0f,0.0f, //v1
+						0.5f,0.5f,0.5f,			1.0f,1.0f,1.0f,		1.0f,1.0f, //v2
+						-0.5f,0.5f,0.5f,			0.0f,1.0f,1.0f,		0.0f,1.0f, //v3
+						-0.5f,-0.5f,-0.5f,		0.0f,0.0f,0.0f,		1.0f,0.0f, //v4
+						0.5f,-0.5f,-0.5f,		1.0f,0.0f,0.0f,		0.0f,0.0f, //v5
+						0.5f,0.5f,-0.5f,			1.0f,1.0f,0.0f,		0.0f,1.0f, //v6
+						-0.5f,0.5f,-0.5f,		0.0f,1.0f,0.0f,		1.0f,1.0f, //v7
 						}; 
 
 	GLuint Indices[] = {0,1,2,3,	//front
@@ -81,7 +81,7 @@ void FBOCube::Init(){
  
 		// feed the buffer, and let OpenGL know that we don't plan to
 		// change it (STATIC) and that it will be used for drawing (DRAW)
-		glBufferData(GL_ARRAY_BUFFER, 48 * sizeof(GL_FLOAT), Vertex, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, 96 * sizeof(GL_FLOAT), Vertex, GL_STATIC_DRAW);
 
 		//Set the index array
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 24 * sizeof(GL_UNSIGNED_INT), Indices, GL_STATIC_DRAW);
@@ -98,9 +98,11 @@ void FBOCube::Init(){
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_iVBOIndex);
 
 		glEnableVertexAttribArray(WORLD_COORD_LOCATION);
-		glVertexAttribPointer(WORLD_COORD_LOCATION, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT) * 6, BUFFER_OFFSET(0)); //Vertex
+		glVertexAttribPointer(WORLD_COORD_LOCATION, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT) * 8, BUFFER_OFFSET(0)); //Vertex
 		glEnableVertexAttribArray(COLOR_COORD_LOCATION);
-		glVertexAttribPointer(COLOR_COORD_LOCATION, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT) * 6, BUFFER_OFFSET(sizeof(GL_FLOAT) * 3)); //Colors	
+		glVertexAttribPointer(COLOR_COORD_LOCATION, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT) * 8, BUFFER_OFFSET(sizeof(GL_FLOAT) * 3)); //Colors	
+		glEnableVertexAttribArray(TEXTURE_COORD_LOCATION);
+		glVertexAttribPointer(TEXTURE_COORD_LOCATION, 2, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT) * 8, BUFFER_OFFSET(sizeof(GL_FLOAT) * 6)); //Colors	
 		
 	//Unbind the vertex array	
 	glBindVertexArray(0);
@@ -118,9 +120,21 @@ void FBOCube::Draw()
 {
 	//Draw the number of patches
 	glBindVertexArray(m_iVAO);
-		glDrawElements(GL_PATCHES, 24, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_QUADS, 24, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 
+}
+
+
+/**
+* Method to Draw the Quad with Patches (Tessellation)
+*/
+void FBOCube::DrawPatch()
+{
+	//Draw the number of patches
+	glBindVertexArray(m_iVAO);
+		glDrawElements(GL_PATCHES, 24, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
 }
 
 

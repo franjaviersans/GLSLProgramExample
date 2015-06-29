@@ -88,12 +88,14 @@
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\basic.cs" />
     <None Include="shaders\basic.frag" />
     <None Include="shaders\basic.geom" />
     <None Include="shaders\basic.tcs" />
     <None Include="shaders\basic.tes" />
     <None Include="shaders\basic.vert" />
+    <None Include="shaders\compute.cs" />
+    <None Include="shaders\compute.frag" />
+    <None Include="shaders\compute.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

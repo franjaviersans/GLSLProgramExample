@@ -3,12 +3,15 @@
 uniform mat4 mProjection, mModelView;
 
 layout(location = 0) in vec3 vVertex;
-layout(location = 1) in vec3 vColor;
+layout(location = 3) in vec2 vTexCoord;
 
-out vec3 vVertexColor;
+
+out VertexData{
+	vec2 vTexCoord;
+} VertexOut;
 
 void main()
 {
-	vVertexColor = vColor;
+	VertexOut.vTexCoord = vTexCoord;
 	gl_Position = mProjection * mModelView * vec4(vVertex,1.0f);
 }

@@ -17,6 +17,7 @@ namespace glfwFunc
 	int WINDOW_WIDTH = 1024;
 	int WINDOW_HEIGHT = 768;
 	std::string strNameWindow = "Hello GLFW";
+	GLuint m_texture;
 
 	const float NCP = 0.01f;
 	const float FCP = 45.0f;
@@ -24,8 +25,8 @@ namespace glfwFunc
 
 	bool pintar = false;
 
-	GLSLProgram * m_program;
-	glm::mat4x4 mProjMatrix, mModelViewMatrix, mMVP;
+	GLSLProgram * m_program, * m_computeProgram, * m_computeVisualizationProgram;
+	glm::mat4x4 mProjMatrix, mModelViewMatrix;
 
 	//Variables to do rotation
 	glm::quat quater, q2;
@@ -146,21 +147,38 @@ namespace glfwFunc
 
 		RotationMat = glm::mat4_cast(glm::normalize(quater));
 
-		mModelViewMatrix =  glm::translate(glm::mat4(), glm::vec3(0.0f,0.0f,-2.0f)) * 
+
+		//First Cube
+		mModelViewMatrix =  glm::translate(glm::mat4(), glm::vec3(-1.0f,0.0f,-3.0f)) * 
 							RotationMat; 
+
 
 		//Draw a Cube
 		m_program->use();
-		m_program->setUniform("mProjection", mProjMatrix);
-		m_program->setUniform("mModelView", mModelViewMatrix);
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-		//glPointSize(10);
-		FBOCube::Instance()->Draw();
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		{
+			m_program->setUniform("mProjection", mProjMatrix);
+			m_program->setUniform("mModelView", mModelViewMatrix);
+			FBOCube::Instance()->DrawPatch();
+		}
 	
 
+		//Second Cube with texture
+		mModelViewMatrix =  glm::translate(glm::mat4(), glm::vec3(1.0f,0.0f,-3.0f)) * 
+							RotationMat; 
 
-		mMVP = mProjMatrix * mModelViewMatrix;
+		//Draw a Cube
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		m_computeVisualizationProgram->use();
+		{
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, m_texture);
+			m_computeVisualizationProgram->setUniform("mProjection", mProjMatrix);
+			m_computeVisualizationProgram->setUniform("mModelView", mModelViewMatrix);
+			m_computeVisualizationProgram->setUniform("mtex", 0);
+			FBOCube::Instance()->Draw();
+		}
+
+
 
 		glfwSwapBuffers(glfwWindow);
 	}
@@ -199,8 +217,11 @@ namespace glfwFunc
 
 		//load the shaders
 		m_program = new GLSLProgram();
+		m_computeProgram = new GLSLProgram();
+		m_computeVisualizationProgram = new GLSLProgram(); 
 
 		try {
+			//Program with all the shaders
 			m_program->compileShader("./shaders/basic.vert", GLSLShader::VERTEX);
 			m_program->compileShader("./shaders/basic.tcs", GLSLShader::TESS_CONTROL);
 			m_program->compileShader("./shaders/basic.tes", GLSLShader::TESS_EVALUATION);
@@ -209,14 +230,65 @@ namespace glfwFunc
 
 			m_program->link();
 			m_program->use();
+			{
 				m_program->bindAttribLocation(WORLD_COORD_LOCATION, "vVertex");
 				m_program->bindAttribLocation(COLOR_COORD_LOCATION, "vColor");
+			}
+
+			//Program to display result of compute shader
+			m_computeVisualizationProgram->compileShader("./shaders/compute.vert", GLSLShader::VERTEX);
+			m_computeVisualizationProgram->compileShader("./shaders/compute.frag", GLSLShader::FRAGMENT);
+
+			m_computeVisualizationProgram->link();
+			m_computeVisualizationProgram->use();
+			{
+				m_computeVisualizationProgram->bindAttribLocation(WORLD_COORD_LOCATION, "vVertex");
+				m_computeVisualizationProgram->bindAttribLocation(TEXTURE_COORD_LOCATION, "vTexCoord");
+			}
+
+			//Generate empty texture
+			glGenTextures(1, &m_texture);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, m_texture);
+			
+			glTextureParameteri(m_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTextureParameteri(m_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTextureParameteri(m_texture, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTextureParameteri(m_texture, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+			GLfloat * tess = new GLfloat[1024 * 512 * 4];
+
+			for(int i=0;i<1024*512*4;++i) tess[i] = 1.0f;
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, 1024, 512, 0, GL_RGBA, GL_FLOAT, tess);
+
+
+			delete tess;
+
+			//Program with compute shader
+			m_computeProgram->compileShader("./shaders/compute.cs", GLSLShader::COMPUTE);
+			m_computeProgram->link();
+			m_computeProgram->use();
+			{
+				m_computeProgram->setUniform("radius", 200.0f);
+
+				//Bind the texture
+				glBindImageTexture(m_computeProgram->getUniformLocation("destTex"), m_texture, 0, false, 0, GL_WRITE_ONLY, GL_RGBA16F);
+
+				//Do calculation with Compute Shader
+				glDispatchCompute((1024 + 8)/8, (512 + 8)/8, 1);
+
+				//bind the default texture to the image unit, hopefully freeing ours for editing
+				glBindImageTexture(m_computeProgram->getUniformLocation("destTex"), 0, 0, false, 0, GL_WRITE_ONLY, GL_RGBA16F);
+			}
+			
+
+			
+
+
 		} catch(GLSLProgramException & e) {
  			cerr << e.what() << endl;
  			exit( EXIT_FAILURE );
 		}
-		
-
 		
 		//Needed for tessellation
 		glPatchParameteri( GL_PATCH_VERTICES, 4);
@@ -230,8 +302,10 @@ namespace glfwFunc
 	void destroy()
 	{
 		delete m_program;
-		glfwTerminate();
+		delete m_computeProgram;
+		delete m_computeVisualizationProgram;
 		glfwDestroyWindow(glfwWindow);
+		glfwTerminate();
 	}
 }
 

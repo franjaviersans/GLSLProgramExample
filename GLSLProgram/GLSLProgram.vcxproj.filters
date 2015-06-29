@@ -55,7 +55,13 @@
     <None Include="shaders\basic.tes">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="shaders\basic.cs">
+    <None Include="shaders\compute.cs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\compute.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\compute.vert">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

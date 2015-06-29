@@ -37,6 +37,9 @@ class FBOCube
 		///Method to Draw the Quad
 		void Draw();
 
+		///Method to Draw the Quad with Patches (Tessellation)
+		void DrawPatch();
+
 		///Method to Setup rendering cube
 		void Setup();
 

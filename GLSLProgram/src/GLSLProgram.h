@@ -44,7 +44,7 @@ class GLSLProgram
     bool linked;
     std::map<string, int> uniformLocations;
 
-    GLint  getUniformLocation(const char * name );
+    
     bool fileExists( const string & fileName );
     string getExtension( const char * fileName );
 
@@ -70,6 +70,8 @@ class GLSLProgram
 
     void   bindAttribLocation( GLuint location, const char * name);
     void   bindFragDataLocation( GLuint location, const char * name );
+
+	GLint  getUniformLocation(const char * name );
 
     void   setUniform( const char *name, float x, float y, float z);
     void   setUniform( const char *name, const vec2 & v);
