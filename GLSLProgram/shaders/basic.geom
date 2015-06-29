@@ -1,4 +1,4 @@
-#version 450
+#version 450 core
 
 
 layout(triangles, invocations = 1) in;

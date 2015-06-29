@@ -1,12 +1,14 @@
 #version 450 core
 
+uniform sampler2D mtex;
+
 in VertexData{
-	vec3 vColor;
+	vec2 vTexCoord;
 } VertexIn;
 
 layout(location = 0) out vec4 vFragColor;
 
 void main(void)
 {
-	vFragColor = vec4(VertexIn.vColor,1.0f);
+	vFragColor = texture(mtex, VertexIn.vTexCoord);
 }
