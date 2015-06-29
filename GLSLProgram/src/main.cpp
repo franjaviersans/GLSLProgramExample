@@ -277,6 +277,9 @@ namespace glfwFunc
 				//Do calculation with Compute Shader
 				glDispatchCompute((1024 + 8)/8, (512 + 8)/8, 1);
 
+				//Wait for memory writes
+				glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
 				//bind the default texture to the image unit, hopefully freeing ours for editing
 				glBindImageTexture(m_computeProgram->getUniformLocation("destTex"), 0, 0, false, 0, GL_WRITE_ONLY, GL_RGBA16F);
 			}
