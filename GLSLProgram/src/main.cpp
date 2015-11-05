@@ -251,10 +251,10 @@ namespace glfwFunc
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, m_texture);
 			
-			glTextureParameteri(m_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTextureParameteri(m_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTextureParameteri(m_texture, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTextureParameteri(m_texture, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 			GLfloat * tess = new GLfloat[1024 * 512 * 4];
 
